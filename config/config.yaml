@@ -1,0 +1,2 @@
+twbx_path: "/your/path/file.tdsx"
+target_table: "database.schema.table"
