@@ -1,22 +1,40 @@
-
 import argparse
 import yaml
-from extractor import extract_hyper
-from transformer import transform_data
-from loader import load_to_databricks
+
+from extractor import extract_package
+from metadata import parse_metadata
+from hyper_reader import read_hyper
+from transformer import transform
+from loader import load_to_table
 
 
 def load_config(path):
-    with open(path, "r") as f:
+    with open(path) as f:
         return yaml.safe_load(f)
 
 
 def main(config_path):
-    config = load_config(config_path)
+    cfg = load_config(config_path)
 
-    hyper_path = extract_hyper(config["twbx_path"])
-    df = transform_data(hyper_path)
-    load_to_databricks(df, config["target_table"])
+    twbx_path = cfg["twbx_path"]
+    target_table = cfg["target_table"]
+
+    print("🔹 Extracting package...")
+    hyper_path, xml_path = extract_package(twbx_path)
+
+    print("🔹 Parsing metadata...")
+    caption_map, calc_map = parse_metadata(xml_path)
+
+    print("🔹 Reading Hyper file...")
+    df = read_hyper(hyper_path)
+
+    print("🔹 Transforming data...")
+    df = transform(df, caption_map, calc_map)
+
+    print("🔹 Loading to Databricks...")
+    load_to_table(df, target_table)
+
+    print("✅ Pipeline completed successfully")
 
 
 if __name__ == "__main__":
