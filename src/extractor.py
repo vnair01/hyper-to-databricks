@@ -3,16 +3,19 @@ import tempfile
 import os
 
 
-def extract_hyper(twbx_path):
+def extract_package(twbx_path):
     temp_dir = tempfile.mkdtemp()
 
     with zipfile.ZipFile(twbx_path, 'r') as z:
-        hyper_files = [f for f in z.namelist() if f.endswith('.hyper')]
+        files = z.namelist()
 
-        if not hyper_files:
-            raise Exception("No .hyper file found")
+        hyper_file = [f for f in files if f.endswith(".hyper")][0]
+        xml_file = [f for f in files if f.endswith((".twb", ".tds"))][0]
 
-        hyper_file = hyper_files[0]
         z.extract(hyper_file, temp_dir)
+        z.extract(xml_file, temp_dir)
 
-        return os.path.join(temp_dir, hyper_file)
+        return (
+            os.path.join(temp_dir, hyper_file),
+            os.path.join(temp_dir, xml_file)
+        )
